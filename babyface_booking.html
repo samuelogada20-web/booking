@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BabyFace — Flight Booking</title>
+  <style>
+    :root{
+      --bg:#f7fbff;
+      --accent-1:#7f5af0;
+      --accent-2:#091816;
+      --card:#5f3131;
+      --muted:#6b7280;
+      --radius:12px;
+      font-family:system-ui,Segoe UI,Roboto,Arial;
+    }
+    body{margin:0;background:linear-gradient(180deg,#eef2ff 0%,var(--bg) 100%);color:#071029}
+    .wrap{max-width:980px;margin:28px auto;padding:20px}
+    .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 8px 30px rgba(16,24,40,0.06)}
+    header{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent-1),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    h1{margin:0;font-size:20px}
+    form{margin-top:14px;display:grid;gap:10px}
+    label{font-size:13px;color:#0b1220}
+    input,select{padding:10px;border-radius:8px;border:1px solid #e6edf3;font-size:14px}
+    .row{display:flex;gap:10px}
+    .row .col{flex:1}
+    .btn{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn-primary{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:white}
+    .muted{color:var(--muted);font-size:13px}
+    .list{margin-top:14px}
+    .booking-item{padding:10px;border-radius:8px;border:1px dashed #e6edf3;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">BF</div>
+      <div>
+        <h1>BabyFace</h1>
+        <div class="muted">Leef Centre • Contact: 09129999324</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <h2>Book a flight</h2>
+      <form id="bookingForm">
+        <div class="row">
+          <div class="col">
+            <label for="from">From</label>
+            <input id="from" name="from" type="text" placeholder="City or airport (e.g. Lagos - LOS)" required>
+          </div>
+          <div class="col">
+            <label for="to">To</label>
+            <input id="to" name="to" type="text" placeholder="Destination" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="depart">Depart</label>
+            <input id="depart" name="depart" type="date" required>
+          </div>
+          <div class="col">
+            <label for="return">Return (optional)</label>
+            <input id="return" name="return" type="date">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="class">Class</label>
+            <select id="class" name="class">
+              <option value="economy">Economy</option>
+              <option value="premium">Premium Economy</option>
+              <option value="business">Business</option>
+              <option value="first">First</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="passengers">Passengers</label>
+            <input id="passengers" name="passengers" type="number" min="1" value="1" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" placeholder="Passenger's full name" required>
+          </div>
+          <div class="col">
+            <label for="phone">Contact phone</label>
+            <input id="phone" name="phone" type="tel" placeholder="09129999324" required>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button type="submit" class="btn btn-primary">Send booking (save locally)</button>
+          <button type="button" id="clearBtn" class="btn">Clear all saved</button>
+        </div>
+      </form>
+
+      <div class="list">
+        <h3>Saved booking requests (local)</h3>
+        <div id="savedList" class="muted">No bookings yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple front-end only flow: saves booking requests to localStorage
+    const form = document.getElementById('bookingForm');
+    const savedList = document.getElementById('savedList');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function loadBookings(){
+      const raw = localStorage.getItem('babyface_bookings');
+      if(!raw) return [];
+      try { return JSON.parse(raw); } catch(e){ return []; }
+    }
+
+    function saveBookings(arr){
+      localStorage.setItem('babyface_bookings', JSON.stringify(arr));
+    }
+
+    function renderBookings(){
+      const arr = loadBookings();
+      if(arr.length === 0){
+        savedList.innerHTML = '<div class="muted">No bookings yet.</div>';
+        return;
+      }
+      savedList.innerHTML = '';
+      arr.forEach((b, i) => {
+        const d = document.createElement('div');
+        d.className = 'booking-item';
+        d.innerHTML = `<strong>${escapeHtml(b.name)}</strong> — ${escapeHtml(b.from)} → ${escapeHtml(b.to)} <div class="muted" style="font-size:13px">Depart: ${escapeHtml(b.depart)} • Class: ${escapeHtml(b.class)} • Passengers: ${b.passengers}</div>`;
+        savedList.appendChild(d);
+      });
+    }
+
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const payload = {
+        from: form.from.value,
+        to: form.to.value,
+        depart: form.depart.value,
+        return: form.return.value,
+        class: form['class'].value,
+        passengers: Number(form.passengers.value) || 1,
+        name: form.name.value,
+        phone: form.phone.value,
+        createdAt: new Date().toISOString()
+      };
+      const arr = loadBookings();
+      arr.unshift(payload); // put newest first
+      saveBookings(arr);
+      alert('Booking saved locally. You can later replace this with a server POST.');
+      form.reset();
+      form.passengers.value = 1;
+      renderBookings();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if(!confirm('Clear all saved bookings from this browser?')) return;
+      localStorage.removeItem('babyface_bookings');
+      renderBookings();
+    });
+
+    // initial render
+    renderBookings();
+  </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BabyFace Flight Booking</title>
+
+  <style>
+    /* ====== COLOURS & FONTS ====== */
+    :root {
+      --bg1: #9c27b0;
+      --bg2: #e91e63;
+      --card: #ffffff;
+      --text-dark: #0f172a;
+      --text-light: #64748b;
+      --radius: 14px;
+      --shadow: 0 8px 30px rgba(0,0,0,0.15);
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 30px;
+      color: var(--text-dark);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: var(--card);
+      padding: 25px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      text-align: center;
+      color: #333;
+    }
+
+    .subtext {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    form {
+      display: grid;
+      gap: 15px;
+    }
+
+    input, select {
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      width: 100%;
+    }
+
+    .row {
+      display: flex;
+      gap: 15px;
+    }
+
+    .col {
+      flex: 1;
+    }
+
+    button {
+      background: var(--bg1);
+      border: none;
+      color: white;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: var(--bg2);
+    }
+
+    .saved-box {
+      margin-top: 20px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .booking {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>BabyFace Flight Booking</h1>
+    <div class="subtext">Leef Centre • Contact: 09129999324</div>
+
+    <form id="bookingForm">
+
+      <div class="row">
+        <div class="col">
+          <label>From</label>
+          <input id="from" required placeholder="Example: Lagos (LOS)">
+        </div>
+        <div class="col">
+          <label>To</label>
+          <input id="to" required placeholder="Example: Abuja (ABV)">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Depart</label>
+          <input type="date" id="depart" required>
+        </div>
+        <div class="col">
+          <label>Return</label>
+          <input type="date" id="return">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Class</label>
+          <select id="class">
+            <option>Economy</option>
+            <option>Premium Economy</option>
+            <option>Business</option>
+            <option>First Class</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Passengers</label>
+          <input type="number" id="passengers" value="1" min="1">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Full Name</label>
+          <input id="name" required placeholder="Your name">
+        </div>
+        <div class="col">
+          <label>Phone</label>
+          <input id="phone" required placeholder="09129999324">
+        </div>
+      </div>
+
+      <button type="submit">Save Booking</button>
+    </form>
+
+    <div class="saved-box">
+      <h3>Saved Bookings</h3>
+      <div id="saved"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("bookingForm");
+    const savedBox = document.getElementById("saved");
+
+    function load() {
+      const data = localStorage.getItem("bookings");
+      return data ? JSON.parse(data) : [];
+    }
+
+    function save(list) {
+      localStorage.setItem("bookings", JSON.stringify(list));
+    }
+
+    function render() {
+      const list = load();
+      savedBox.innerHTML = "";
+
+      if (list.length === 0) {
+        savedBox.innerHTML = "<p>No bookings yet.</p>";
+        return;
+      }
+
+      list.forEach(b => {
+        let div = document.createElement("div");
+        div.className = "booking";
+        div.innerHTML = `
+          <strong>${b.name}</strong><br>
+          ${b.from} → ${b.to}<br>
+          Class: ${b.class} • Passengers: ${b.passengers}
+        `;
+        savedBox.appendChild(div);
+      });
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const booking = {
+        from: from.value,
+        to: to.value,
+        depart: depart.value,
+        return: return.value,
+        class: class.value,
+        passengers: passengers.value,
+        name: name.value,
+        phone: phone.value
+      };
+
+      const list = load();
+      list.unshift(booking);
+      save(list);
+
+      alert("Booking saved!");
+      form.reset();
+      passengers.value = 1;
+      render();
+    });
+
+    render();
+  </script>
+
+</body>
+</html>
